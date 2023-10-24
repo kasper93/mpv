@@ -72,11 +72,8 @@ static HRESULT get_device_delay(struct wasapi_state *state, double *delay_ns)
                    "Ignoring it.\n", qpc_diff / 10000000.0);
     }
 
-    if (sample_count > 0 && *delay_ns <= 0) {
+    if (sample_count > 0 && *delay_ns <= 0)
         MP_WARN(state, "Under-run: Device delay: %g ns\n", *delay_ns);
-    } else {
-        MP_TRACE(state, "Device delay: %g ns\n", *delay_ns);
-    }
 
     return S_OK;
 exit_label:
@@ -114,8 +111,6 @@ static bool thread_feed(struct ao *ao)
         // enough to send more feed events when it gets behind.
         refill = true;
     }
-    MP_TRACE(ao, "Frame to fill: %"PRIu32". Padding: %"PRIu32"\n",
-             frame_count, padding);
 
     double delay_ns;
     hr = get_device_delay(state, &delay_ns);
