@@ -456,6 +456,7 @@ const struct m_sub_options gl_video_conf = {
         {"background", OPT_COLOR(background)},
         {"interpolation", OPT_BOOL(interpolation)},
         {"interpolation-threshold", OPT_FLOAT(interpolation_threshold)},
+        {"interpolation-max-radius", OPT_FLOAT(interpolation_max_radius)},
         {"blend-subtitles", OPT_CHOICE(blend_subs,
             {"no", BLEND_SUBS_NO},
             {"yes", BLEND_SUBS_YES},

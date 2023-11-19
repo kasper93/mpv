@@ -935,6 +935,23 @@ static void draw_frame(struct vo *vo, struct vo_frame *frame)
         p->last_id = id;
     }
 
+    if (can_interpolate && pl_frame_mix_radius(&params) *
+                           frame->ideal_frame_vsync_duration /
+                           frame->approx_duration >
+                           opts->interpolation_max_radius)
+    {
+        can_interpolate = false;
+    }
+
+    float pl_vps = pl_queue_estimate_vps(p->queue);
+    // Verify the internal state of the pl_queue as it may be outdated.
+    if (can_interpolate && pl_vps && pl_frame_mix_radius(&params) *
+                                     pl_queue_estimate_fps(p->queue) /
+                                     pl_vps > opts->interpolation_max_radius)
+    {
+        can_interpolate = false;
+    }
+
     if (p->target_hint && frame->current) {
         struct pl_color_space hint = get_mpi_csp(vo, frame->current);
         if (opts->target_prim)

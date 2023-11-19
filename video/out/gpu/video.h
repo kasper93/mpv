@@ -160,6 +160,7 @@ struct gl_video_opts {
     struct m_color background;
     bool interpolation;
     float interpolation_threshold;
+    float interpolation_max_radius;
     int blend_subs;
     char **user_shaders;
     char **user_shader_opts;
