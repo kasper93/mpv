@@ -63,7 +63,8 @@ local mp_globals = {
             set_mouse_area = {},
             set_osd_ass = {},
         }
-    }
+    },
+    unpack = {},
 }
 
 local mp_internal = {
@@ -96,7 +97,8 @@ local mp_internal = {
             use_suspend = {},
             wait_event = {},
         }
-    }
+    },
+    unpack = {},
 }
 
 std = "min+mp"

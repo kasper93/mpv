@@ -1,5 +1,4 @@
 -- Compatibility shim for lua 5.2/5.3
--- luacheck: globals unpack
 unpack = unpack or table.unpack -- luacheck: globals table.unpack
 
 -- these are used internally by lua.c
