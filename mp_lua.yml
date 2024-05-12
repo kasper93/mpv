@@ -1,0 +1,304 @@
+---
+base: lua51
+name: mp
+globals:
+  mp.command:
+    args:
+      - type: string
+        observes: read
+  mp.commandv:
+    args:
+      - type: string
+        observes: read
+      - type: string
+        observes: read
+      - type: "..."
+        required: false
+        observes: read
+  mp.command_native:
+    args:
+      - type: table
+        observes: read
+      - type: any
+        observes: read
+        required: false
+  mp.command_native_async:
+    args:
+      - type: table
+        observes: read
+      - type: function
+        observes: read
+  mp.abort_async_command:
+    args:
+      - type: table
+        observes: read
+  mp.del_property:
+    args:
+      - type: string
+        observes: read
+  mp.get_property:
+    args:
+      - type: string
+        observes: read
+      - type: string
+        observes: read
+        required: false
+  mp.get_property_osd:
+    args:
+      - type: string
+        observes: read
+      - type: string
+        observes: read
+        required: false
+  mp.get_property_bool:
+    args:
+      - type: string
+        observes: read
+      - type: bool
+        observes: read
+        required: false
+  mp.get_property_number:
+    args:
+      - type: string
+        observes: read
+      - type: number
+        observes: read
+        required: false
+  mp.get_property_native:
+    args:
+      - type: string
+        observes: read
+      - type: any
+        observes: read
+        required: false
+  mp.set_property:
+    args:
+      - type: string
+        observes: read
+      - type: string
+        observes: read
+  mp.set_property_number:
+    args:
+      - type: string
+        observes: read
+      - type: number
+        observes: read
+  mp.set_property_native:
+    args:
+      - type: string
+        observes: read
+      - type: any
+        observes: read
+  mp.get_time:
+    args: []
+    must_use: true
+  mp.add_key_binding:
+    args:
+      - type:
+          - nil
+          - string
+        observes: read
+      - type:
+          - function
+          - string
+        observes: read
+      - type:
+          - function
+        observes: read
+        required: false
+      - type:
+          - table
+        observes: read
+        required: false
+  mp.add_forced_key_binding:
+    args:
+      - type: string
+        observes: read
+      - type:
+          - function
+          - string
+        observes: read
+      - type:
+          - function
+        observes: read
+        required: false
+      - type:
+          - table
+        observes: read
+        required: false
+  mp.remove_key_binding:
+    args:
+      - type: string
+        observes: read
+  mp.register_event:
+    args:
+      - type: string
+        observes: read
+      - type: function
+        observes: read
+  mp.unregister_event:
+    args:
+      - type: function
+        observes: read
+  mp.observe_property:
+    args:
+      - type: string
+        observes: read
+      - type: string
+        observes: read
+      - type: function
+        observes: read
+  mp.unobserve_property:
+    args:
+      - type: function
+        observes: read
+  mp.add_timeout:
+    args:
+      - type: number
+        observes: read
+      - type: function
+        observes: read
+      - type: bool
+        observes: read
+        required: false
+  mp.add_periodic_timer:
+    args:
+      - type: number
+        observes: read
+      - type: function
+        observes: read
+      - type: bool
+        observes: read
+        required: false
+  mp.get_opt:
+    args:
+      - type: string
+        observes: read
+    must_use: true
+  mp.get_script_name:
+    args: []
+    must_use: true
+  mp.get_script_directory:
+    args: []
+    must_use: true
+  mp.osd_message:
+    args:
+      - type: string
+        observes: read
+      - type: number
+        observes: read
+        required: false
+  mp.get_wakeup_pipe:
+    args: []
+    must_use: true
+  mp.get_next_timeout:
+    args: []
+    must_use: true
+  mp.dispatch_events:
+    args:
+      - type: bool
+        observes: read
+        required: false
+  mp.register_idle:
+    args:
+      - type: function
+        observes: read
+  mp.unregister_idle:
+    args:
+      - type: function
+        observes: read
+  mp.enable_messages:
+    args:
+      - type: string
+        observes: read
+  mp.register_script_message:
+    args:
+      - type: string
+        observes: read
+      - type: function
+        observes: read
+  mp.unregister_script_message:
+    args:
+      - type: string
+        observes: read
+  mp.create_osd_overlay:
+    args:
+      - type: string
+        observes: read
+  mp.get_osd_size:
+    args: []
+    must_use: true
+  mp.msg.fatal:
+   args:
+      - type: string
+        observes: read
+      - type: ...
+        observes: read
+        required: false
+  mp.msg.error:
+   args:
+      - type: string
+        observes: read
+      - type: ...
+        observes: read
+        required: false
+  mp.msg.warn:
+   args:
+      - type: string
+        observes: read
+      - type: ...
+        observes: read
+        required: false
+  mp.msg.info:
+   args:
+      - type: string
+        observes: read
+      - type: ...
+        observes: read
+        required: false
+  mp.msg.verbose:
+   args:
+      - type: string
+        observes: read
+      - type: ...
+        observes: read
+        required: false
+  mp.msg.debug:
+    args:
+      - type: string
+        observes: read
+      - type: ...
+        observes: read
+        required: false
+  mp.msg.trace:
+    args:
+      - type: string
+        observes: read
+      - type: ...
+        observes: read
+        required: false
+  # Not documented
+  mp.input_define_section:
+    args:
+      - type: ...
+  mp.input_enable_section:
+    args:
+      - type: ...
+  mp.input_disable_section:
+    args:
+      - type: ...
+  mp.enable_key_bindings:
+    args:
+      - type: ...
+  mp.disable_key_bindings:
+    args:
+      - type: ...
+  mp.set_key_bindings:
+    args:
+      - type: ...
+  mp.get_mouse_pos:
+    args:
+      - type: ...
+  mp.set_mouse_area:
+    args:
+      - type: ...
