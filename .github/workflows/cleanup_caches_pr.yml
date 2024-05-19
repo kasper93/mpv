@@ -1,0 +1,22 @@
+name: Cleanup caches PR
+
+on:
+  pull_request_target:
+    types: closed
+
+jobs:
+  pr_cache:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          gh extension install actions/gh-actions-cache
+          set +e
+          keys=$(gh actions-cache list -R ${{ github.repository }} -B $BRANCH | cut -f 1)
+          set +e
+          for key in $keys
+          do
+              gh actions-cache delete $key -R ${{ github.repository }} -B $BRANCH --confirm
+          done
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      BRANCH: refs/pull/${{ github.event.pull_request.number }}/merge
