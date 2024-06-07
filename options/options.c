@@ -862,6 +862,8 @@ static const m_option_t mp_opts[] = {
     {"osd-msg2", OPT_STRING(osd_msg[1]), .flags = UPDATE_OSD},
     {"osd-msg3", OPT_STRING(osd_msg[2]), .flags = UPDATE_OSD},
 
+    {"osd-show-playlist-titles", OPT_BOOL(show_playlist_titles)},
+
     {"video-osd", OPT_BOOL(video_osd), .flags = UPDATE_OSD},
 
     {"idle", OPT_CHOICE(player_idle_mode,
@@ -967,6 +969,7 @@ static const struct MPOpts mp_default_opts = {
     .wintitle = "${?media-title:${media-title}}${!media-title:No file} - mpv",
     .stop_screensaver = 1,
     .cursor_autohide_delay = 1000,
+    .show_playlist_titles = true,
     .video_osd = true,
     .osd_level = 1,
     .osd_on_seek = 1,

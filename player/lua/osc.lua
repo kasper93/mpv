@@ -56,7 +56,6 @@ local user_opts = {
     livemarkers = true,         -- update seekbar chapter markers on duration change
     chapters_osd = true,        -- whether to show chapters OSD on next/prev
     playlist_osd = true,        -- whether to show playlist OSD on next/prev
-    playlist_media_title = true, -- whether to use media titles as playlist entry names
     chapter_fmt = "Chapter: %s", -- chapter print format for seekbar-hover. "no" to disable
     unicodeminus = false,       -- whether to use the Unicode minus sign character
 
@@ -528,7 +527,7 @@ local function get_playlist()
     for _, v in ipairs(limlist) do
         local title = v.title
         local _, filename = utils.split_path(v.filename)
-        if not user_opts.playlist_media_title or title == nil then
+        if title == nil or not mp.get_property_native("osd-show-playlist-titles") then
             title = filename
         end
         message = string.format('%s %s %s\n', message,

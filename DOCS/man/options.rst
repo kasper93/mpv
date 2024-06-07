@@ -4392,6 +4392,12 @@ OSD
     Set the duration of ``osd-playing-msg`` in ms. If this is unset,
     ``osd-playing-msg`` stays on screen for the duration of ``osd-duration``.
 
+``--osd-show-playlist-titles``
+    Whether to print the ``media-title`` when it is available when showing
+    playlist entries. If this is disabled, ``filename`` is always shown.
+
+    Default: yes.
+
 ``--osd-bar-align-x=<-1-1>``
     Position of the OSD bar. -1 is far left, 0 is centered, 1 is far right.
     Fractional values (like 0.5) are allowed.

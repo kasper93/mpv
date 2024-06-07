@@ -3263,7 +3263,7 @@ static int mp_property_playlist(void *ctx, struct m_property *prop,
         for (int n = 0; n < pl->num_entries; n++) {
             struct playlist_entry *e = pl->entries[n];
             char *p = e->title;
-            if (!p) {
+            if (!p || !mpctx->opts->show_playlist_titles) {
                 p = e->filename;
                 if (!mp_is_url(bstr0(p))) {
                     char *s = mp_basename(e->filename);

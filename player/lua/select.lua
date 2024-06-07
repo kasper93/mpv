@@ -28,9 +28,14 @@ end
 mp.add_forced_key_binding(nil, "select-playlist", function ()
     local playlist = {}
     local default_item
+    local show_title = mp.get_property_native("osd-show-playlist-titles")
 
     for i, entry in ipairs(mp.get_property_native("playlist")) do
-        playlist[i] = select(2, utils.split_path(entry.filename))
+        if entry.title and show_title then
+            playlist[i] = entry.title
+        else
+            playlist[i] = select(2, utils.split_path(entry.filename))
+        end
 
         if entry.playing then
             default_item = i
