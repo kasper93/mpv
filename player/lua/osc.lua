@@ -525,13 +525,16 @@ local function get_playlist()
 
     local message = string.format('Playlist [%d/%d]:\n', pos, count)
     for _, v in ipairs(limlist) do
-        local title = v.title
-        local _, filename = utils.split_path(v.filename)
-        if title == nil or not mp.get_property_native("osd-show-playlist-titles") then
-            title = filename
+        local entry
+        if v.title and mp.get_property_native("osd-show-playlist-titles") then
+            entry = v.title
+        elseif v.filename:find("://") then
+            entry = v.filename
+        else
+            entry = select(2, utils.split_path(v.filename))
         end
         message = string.format('%s %s %s\n', message,
-            (v.current and '●' or '○'), title)
+            (v.current and '●' or '○'), entry)
     end
     return message
 end

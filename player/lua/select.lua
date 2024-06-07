@@ -33,6 +33,8 @@ mp.add_forced_key_binding(nil, "select-playlist", function ()
     for i, entry in ipairs(mp.get_property_native("playlist")) do
         if entry.title and show_title then
             playlist[i] = entry.title
+        elseif (entry.filename:find("://")) then
+            playlist[i] = entry.filename
         else
             playlist[i] = select(2, utils.split_path(entry.filename))
         end
