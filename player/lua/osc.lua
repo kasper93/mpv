@@ -524,14 +524,17 @@ local function get_playlist()
     end
 
     local message = string.format('Playlist [%d/%d]:\n', pos, count)
+    local show = mp.get_property_native('osd-playlist-entry')
     for _, v in ipairs(limlist) do
-        local entry
-        if v.title and mp.get_property_native("osd-show-playlist-titles") then
-            entry = v.title
-        elseif v.filename:find("://") then
+        local entry = v.title
+        if not entry or show ~= 'title' then
             entry = v.filename
-        else
-            entry = select(2, utils.split_path(v.filename))
+            if not entry:find("://") then
+                entry = select(2, utils.split_path(entry))
+            end
+        end
+        if v.title and show == 'both' then
+            entry = string.format('%s (%s)', v.title, entry)
         end
         message = string.format('%s %s %s\n', message,
             (v.current and '●' or '○'), entry)

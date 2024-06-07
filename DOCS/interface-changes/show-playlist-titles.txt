@@ -1,2 +1,2 @@
-add `--osd-show-playlist-titles` option
+add `--osd-playlist-entry` option
 remove `osc-playlist_media_title` script-opt
