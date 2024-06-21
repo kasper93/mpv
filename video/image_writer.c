@@ -75,9 +75,7 @@ const struct m_opt_choice_alternatives mp_image_writer_formats[] = {
     {"jpeg", AV_CODEC_ID_MJPEG},
     {"png",  AV_CODEC_ID_PNG},
     {"webp", AV_CODEC_ID_WEBP},
-#if HAVE_JPEGXL
     {"jxl",  AV_CODEC_ID_JPEGXL},
-#endif
 #if HAVE_AVIF_MUXER
     {"avif",  AV_CODEC_ID_AV1},
 #endif
@@ -95,10 +93,8 @@ const struct m_option image_writer_opts[] = {
     {"webp-lossless", OPT_BOOL(webp_lossless)},
     {"webp-quality", OPT_INT(webp_quality), M_RANGE(0, 100)},
     {"webp-compression", OPT_INT(webp_compression), M_RANGE(0, 6)},
-#if HAVE_JPEGXL
     {"jxl-distance", OPT_DOUBLE(jxl_distance), M_RANGE(0.0, 15.0)},
     {"jxl-effort", OPT_INT(jxl_effort), M_RANGE(1, 9)},
-#endif
 #if HAVE_AVIF_MUXER
     {"avif-encoder", OPT_STRING(avif_encoder)},
     {"avif-opts", OPT_KEYVALUELIST(avif_opts)},
@@ -210,13 +206,11 @@ static bool write_lavc(struct image_writer_ctx *ctx, mp_image_t *image, FILE *fp
                        AV_OPT_SEARCH_CHILDREN);
         av_opt_set_int(avctx, "quality", ctx->opts->webp_quality,
                        AV_OPT_SEARCH_CHILDREN);
-#if HAVE_JPEGXL
     } else if (codec->id == AV_CODEC_ID_JPEGXL) {
         av_opt_set_double(avctx, "distance", ctx->opts->jxl_distance,
                           AV_OPT_SEARCH_CHILDREN);
         av_opt_set_int(avctx, "effort", ctx->opts->jxl_effort,
                        AV_OPT_SEARCH_CHILDREN);
-#endif
     }
 
     if (avcodec_open2(avctx, codec, NULL) < 0) {
@@ -562,9 +556,7 @@ const char *image_writer_file_ext(const struct image_writer_opts *opts)
 bool image_writer_high_depth(const struct image_writer_opts *opts)
 {
     return opts->format == AV_CODEC_ID_PNG
-#if HAVE_JPEGXL
            || opts->format == AV_CODEC_ID_JPEGXL
-#endif
 #if HAVE_AVIF_MUXER
            || opts->format == AV_CODEC_ID_AV1
 #endif
@@ -575,10 +567,7 @@ bool image_writer_flexible_csp(const struct image_writer_opts *opts)
 {
     if (!opts->tag_csp)
         return false;
-    return false
-#if HAVE_JPEGXL
-        || opts->format == AV_CODEC_ID_JPEGXL
-#endif
+    return opts->format == AV_CODEC_ID_JPEGXL
 #if HAVE_AVIF_MUXER
         || opts->format == AV_CODEC_ID_AV1
 #endif
