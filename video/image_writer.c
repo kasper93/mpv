@@ -76,9 +76,7 @@ const struct m_opt_choice_alternatives mp_image_writer_formats[] = {
     {"png",  AV_CODEC_ID_PNG},
     {"webp", AV_CODEC_ID_WEBP},
     {"jxl",  AV_CODEC_ID_JPEGXL},
-#if HAVE_AVIF_MUXER
     {"avif",  AV_CODEC_ID_AV1},
-#endif
     {0}
 };
 
@@ -95,11 +93,9 @@ const struct m_option image_writer_opts[] = {
     {"webp-compression", OPT_INT(webp_compression), M_RANGE(0, 6)},
     {"jxl-distance", OPT_DOUBLE(jxl_distance), M_RANGE(0.0, 15.0)},
     {"jxl-effort", OPT_INT(jxl_effort), M_RANGE(1, 9)},
-#if HAVE_AVIF_MUXER
     {"avif-encoder", OPT_STRING(avif_encoder)},
     {"avif-opts", OPT_KEYVALUELIST(avif_opts)},
     {"avif-pixfmt", OPT_STRING(avif_pixfmt)},
-#endif
     {"high-bit-depth", OPT_BOOL(high_bit_depth)},
     {"tag-colorspace", OPT_BOOL(tag_csp)},
     {0},
@@ -314,8 +310,6 @@ static bool write_jpeg(struct image_writer_ctx *ctx, mp_image_t *image, FILE *fp
 
 #endif
 
-#if HAVE_AVIF_MUXER
-
 static void log_side_data(struct image_writer_ctx *ctx, AVPacketSideData *data,
                           size_t size)
 {
@@ -494,8 +488,6 @@ free_data:
     return success;
 }
 
-#endif
-
 static int get_encoder_format(const AVCodec *codec, int srcfmt, bool highdepth)
 {
     const enum AVPixelFormat *pix_fmts = codec->pix_fmts;
@@ -557,10 +549,7 @@ bool image_writer_high_depth(const struct image_writer_opts *opts)
 {
     return opts->format == AV_CODEC_ID_PNG
            || opts->format == AV_CODEC_ID_JPEGXL
-#if HAVE_AVIF_MUXER
-           || opts->format == AV_CODEC_ID_AV1
-#endif
-    ;
+           || opts->format == AV_CODEC_ID_AV1;
 }
 
 bool image_writer_flexible_csp(const struct image_writer_opts *opts)
@@ -568,9 +557,7 @@ bool image_writer_flexible_csp(const struct image_writer_opts *opts)
     if (!opts->tag_csp)
         return false;
     return opts->format == AV_CODEC_ID_JPEGXL
-#if HAVE_AVIF_MUXER
         || opts->format == AV_CODEC_ID_AV1
-#endif
 #if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 58, 100)
         // This version added support for cICP tag writing
         || opts->format == AV_CODEC_ID_PNG
@@ -689,14 +676,11 @@ bool write_image(struct mp_image *image, const struct image_writer_opts *opts,
         destfmt = IMGFMT_RGB24;
     }
 #endif
-#if HAVE_AVIF_MUXER
     if (opts->format == AV_CODEC_ID_AV1) {
         write = write_avif;
         if (opts->avif_pixfmt && opts->avif_pixfmt[0])
             destfmt = mp_imgfmt_from_name(bstr0(opts->avif_pixfmt));
-    }
-#endif
-    if (opts->format == AV_CODEC_ID_WEBP && !opts->webp_lossless) {
+    } else if (opts->format == AV_CODEC_ID_WEBP && !opts->webp_lossless) {
         // For lossy images, libwebp has its own RGB->YUV conversion.
         // We don't want that, so force YUV/YUVA here.
         int alpha = image->fmt.flags & MP_IMGFLAG_ALPHA;

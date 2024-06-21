@@ -47,7 +47,6 @@ features = {
     'debug': get_option('debug'),
     'ffmpeg': true,
     'gpl': get_option('gpl'),
-    'avif-muxer': libavformat.version().version_compare('>= 59.24.100'),
     'libass': true,
     'libplacebo': true,
 }
