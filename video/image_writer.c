@@ -558,11 +558,7 @@ bool image_writer_flexible_csp(const struct image_writer_opts *opts)
         return false;
     return opts->format == AV_CODEC_ID_JPEGXL
         || opts->format == AV_CODEC_ID_AV1
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 58, 100)
-        // This version added support for cICP tag writing
-        || opts->format == AV_CODEC_ID_PNG
-#endif
-    ;
+        || opts->format == AV_CODEC_ID_PNG;
 }
 
 int image_writer_format_from_ext(const char *ext)
