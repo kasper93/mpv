@@ -228,12 +228,6 @@ struct stream_info {
     double ts_offset;
 };
 
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(59, 10, 100)
-    #define HAVE_IO_CLOSE2 1
-#else
-    #define HAVE_IO_CLOSE2 0
-#endif
-
 typedef struct lavf_priv {
     struct stream *stream;
     bool own_stream;
@@ -266,11 +260,7 @@ typedef struct lavf_priv {
     int num_nested;
     int (*default_io_open)(struct AVFormatContext *s, AVIOContext **pb,
                            const char *url, int flags, AVDictionary **options);
-#if HAVE_IO_CLOSE2
     int (*default_io_close2)(struct AVFormatContext *s, AVIOContext *pb);
-#else
-    void (*default_io_close)(struct AVFormatContext *s, AVIOContext *pb);
-#endif
 } lavf_priv_t;
 
 static void update_read_stats(struct demuxer *demuxer)
@@ -971,11 +961,7 @@ static int nested_io_open(struct AVFormatContext *s, AVIOContext **pb,
     return r;
 }
 
-#if HAVE_IO_CLOSE2
 static int nested_io_close2(struct AVFormatContext *s, AVIOContext *pb)
-#else
-static void nested_io_close(struct AVFormatContext *s, AVIOContext *pb)
-#endif
 {
     struct demuxer *demuxer = s->opaque;
     lavf_priv_t *priv = demuxer->priv;
@@ -987,11 +973,7 @@ static void nested_io_close(struct AVFormatContext *s, AVIOContext *pb)
         }
     }
 
-#if HAVE_IO_CLOSE2
     return priv->default_io_close2(s, pb);
-#else
-    priv->default_io_close(s, pb);
-#endif
 }
 
 static int demux_open_lavf(demuxer_t *demuxer, enum demux_check check)
@@ -1081,13 +1063,8 @@ static int demux_open_lavf(demuxer_t *demuxer, enum demux_check check)
     if (demuxer->access_references) {
         priv->default_io_open = avfc->io_open;
         avfc->io_open = nested_io_open;
-#if HAVE_IO_CLOSE2
         priv->default_io_close2 = avfc->io_close2;
         avfc->io_close2 = nested_io_close2;
-#else
-        priv->default_io_close = avfc->io_close;
-        avfc->io_close = nested_io_close;
-#endif
     } else {
         avfc->io_open = block_io_open;
     }
