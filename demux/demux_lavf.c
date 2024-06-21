@@ -603,13 +603,8 @@ static void select_tracks(struct demuxer *demuxer, int start)
 static void export_replaygain(demuxer_t *demuxer, struct sh_stream *sh,
                               AVStream *st)
 {
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(60, 15, 100)
     AVPacketSideData *side_data = st->codecpar->coded_side_data;
     int nb_side_data = st->codecpar->nb_coded_side_data;
-#else
-    AVPacketSideData *side_data = st->side_data;
-    int nb_side_data = st->nb_side_data;
-#endif
     for (int i = 0; i < nb_side_data; i++) {
         AVReplayGain *av_rgain;
         struct replaygain_data *rgain;
@@ -678,7 +673,6 @@ static bool is_image(AVStream *st, bool attached_picture, const AVInputFormat *a
     );
 }
 
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(60, 15, 100)
 static inline const uint8_t *mp_av_stream_get_side_data(const AVStream *st,
                                                         enum AVPacketSideDataType type)
 {
@@ -688,9 +682,6 @@ static inline const uint8_t *mp_av_stream_get_side_data(const AVStream *st,
                                  type);
     return sd ? sd->data : NULL;
 }
-#else
-#define mp_av_stream_get_side_data(st, type) av_stream_get_side_data(st, type, NULL)
-#endif
 
 static void handle_new_stream(demuxer_t *demuxer, int i)
 {
