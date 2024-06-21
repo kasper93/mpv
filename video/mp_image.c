@@ -21,6 +21,7 @@
 #include <libavutil/mem.h>
 #include <libavutil/common.h>
 #include <libavutil/display.h>
+#include <libavutil/dovi_meta.h>
 #include <libavutil/bswap.h>
 #include <libavutil/hwcontext.h>
 #include <libavutil/intreadwrite.h>
@@ -28,10 +29,6 @@
 #include <libavcodec/avcodec.h>
 #include <libavutil/mastering_display_metadata.h>
 #include <libplacebo/utils/libav.h>
-
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 16, 100)
-# include <libavutil/dovi_meta.h>
-#endif
 
 #include "mpv_talloc.h"
 
@@ -1090,10 +1087,8 @@ struct mp_image *mp_image_from_av_frame(struct AVFrame *src)
         dst->a53_cc = sd->buf;
 
     AVBufferRef *dovi = NULL;
-#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 16, 100)
     sd = av_frame_get_side_data(src, AV_FRAME_DATA_DOVI_METADATA);
     if (sd) {
-#ifdef PL_HAVE_LAV_DOLBY_VISION
         const AVDOVIMetadata *metadata = (const AVDOVIMetadata *)sd->buf->data;
         const AVDOVIRpuDataHeader *header = av_dovi_get_header(metadata);
         if (header->disable_residual_flag) {
@@ -1111,7 +1106,6 @@ struct mp_image *mp_image_from_av_frame(struct AVFrame *src)
             dst->params.color = frame.color;
 #endif
         }
-#endif
     }
 
     sd = av_frame_get_side_data(src, AV_FRAME_DATA_DOVI_RPU_BUFFER);
@@ -1119,7 +1113,6 @@ struct mp_image *mp_image_from_av_frame(struct AVFrame *src)
         pl_hdr_metadata_from_dovi_rpu(&dst->params.color.hdr, sd->buf->data,
                                       sd->buf->size);
     }
-#endif
 
     sd = av_frame_get_side_data(src, AV_FRAME_DATA_FILM_GRAIN_PARAMS);
     if (sd)
