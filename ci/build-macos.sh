@@ -15,6 +15,7 @@ meson setup build \
     --werror \
     -Dprefix="${MPV_INSTALL_PREFIX}" \
     -D{c_args,objc_args}="-Wno-error=deprecated -Wno-error=deprecated-declarations" \
+    -Db_sanitize=address,undefined \
     -D{libmpv,tests}=true \
     -D{gl,iconv,lcms2,lua,jpeg,plain-gl,zlib}=enabled \
     -D{cocoa,coreaudio,gl-cocoa,videotoolbox-gl,videotoolbox-pl}=enabled \
