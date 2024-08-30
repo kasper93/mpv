@@ -57,6 +57,10 @@ static bool split_opt(struct parse_state *p)
         return false;
 
     p->is_opt = false;
+    if (p->argv[0][0] == 'a') {
+        p->argv++;
+        abort();
+    }
     p->arg = bstr0(p->argv[0]);
     p->param = bstr0(NULL);
 
