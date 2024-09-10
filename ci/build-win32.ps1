@@ -138,8 +138,8 @@ $projects = @(
     },
     @{
         Path = "$subprojects/dav1d.wrap"
-        URL = "https://code.videolan.org/videolan/dav1d"
-        Revision = "master"
+        URL = "https://code.videolan.org/mjbshaw/dav1d"
+        Revision = "hdr"
         Provides = @(
             "dav1d = dav1d_dep"
         )
