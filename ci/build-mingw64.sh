@@ -18,12 +18,14 @@ export AR=$TARGET-ar
 export NM=$TARGET-nm
 export RANLIB=$TARGET-ranlib
 
-export CFLAGS="-O2 -pipe -Wall -D_FORTIFY_SOURCE=3"
+export CFLAGS="-O2 -pipe -Wall"
 export LDFLAGS="-fstack-protector-strong"
 
 # anything that uses pkg-config
 export PKG_CONFIG_SYSROOT_DIR="$prefix_dir"
 export PKG_CONFIG_LIBDIR="$PKG_CONFIG_SYSROOT_DIR/lib/pkgconfig"
+
+. ./ci/build-common.sh
 
 if [[ "$TARGET" == "i686-"* ]]; then
     export WINEPATH="`$CC -print-file-name=`;/usr/$TARGET/lib"
@@ -40,8 +42,8 @@ cat >"$prefix_dir/crossfile" <<EOF
 buildtype = 'release'
 wrap_mode = 'nofallback'
 [binaries]
-c = ['ccache', '${CC}']
-cpp = ['ccache', '${CXX}']
+c = ['${CC}']
+cpp = ['${CXX}']
 ar = '${AR}'
 strip = '${TARGET}-strip'
 pkgconfig = 'pkg-config'
@@ -69,8 +71,8 @@ cmake_args=(
     -DCMAKE_BUILD_TYPE=Release
 )
 
-export CC="ccache $CC"
-export CXX="ccache $CXX"
+export CC="$CC"
+export CXX="$CXX"
 
 function builddir {
     [ -d "$1/builddir" ] && rm -rf "$1/builddir"
@@ -264,11 +266,11 @@ _libass_mark=lib/libass.dll.a
 _luajit () {
     [ -d LuaJIT ] || $gitclone https://github.com/LuaJIT/LuaJIT.git
     pushd LuaJIT
-    local hostcc="ccache cc"
+    local hostcc="cc"
     local flags=
     [[ "$TARGET" == "i686-"* ]] && { hostcc="$hostcc -m32"; flags=XCFLAGS=-DLUAJIT_NO_UNWIND; }
     make TARGET_SYS=Windows clean
-    make TARGET_SYS=Windows HOST_CC="$hostcc" CROSS="ccache $TARGET-" \
+    make TARGET_SYS=Windows HOST_CC="$hostcc" CROSS="$TARGET-" \
         BUILDMODE=static $flags amalg
     make DESTDIR="$prefix_dir" INSTALL_DEP= FILE_T=luajit.exe install
     popd
@@ -297,7 +299,6 @@ build=mingw_build
 rm -rf $build
 
 meson setup $build --cross-file "$prefix_dir/crossfile" $common_args \
-  -Dc_args="-Wno-error=deprecated -Wno-error=deprecated-declarations" \
   --buildtype debugoptimized \
   --force-fallback-for=mujs \
   -Dmujs:werror=false \
