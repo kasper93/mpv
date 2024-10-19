@@ -39,3 +39,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: chartboost/ruff-action@v1
+
+  clang-format-lint:
+    runs-on: ubuntu-latest
+    # container:
+    #   image: "registry.opensuse.org/home/mia/images/images/mpv-ci:stable-deps"
+    steps:
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - uses: actions/checkout@v4
+      - run: git clang-format $GITHUB_REF --diff
