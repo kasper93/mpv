@@ -344,7 +344,7 @@ int mp_initialize(struct MPContext *mpctx, char **options)
     mp_msg_set_early_logging(mpctx->global, true);
     mp_update_logging(mpctx, true);
 
-    if (options) {
+    if (options ) {
         MP_VERBOSE(mpctx, "Command line options:");
         for (int i = 0; options[i]; i++)
             MP_VERBOSE(mpctx, " '%s'", options[i]);
