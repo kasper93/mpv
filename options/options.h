@@ -232,6 +232,7 @@ typedef struct MPOpts {
     bool use_filedir_conf;
     int hls_bitrate;
     int edition_id;
+    int title_id;
     bool initial_audio_sync;
     double sync_max_video_change;
     double sync_max_audio_change;

@@ -552,6 +552,7 @@ static const m_option_t mp_opts[] = {
     {"dvd", OPT_SUBSTRUCT(dvd_opts, dvd_conf)},
 #endif
     {"edition", OPT_CHOICE(edition_id, {"auto", -1}), M_RANGE(0, 8190)},
+    {"title", OPT_CHOICE(title_id, {"auto", -1}), M_RANGE(0, 8190)},
 #if HAVE_LIBBLURAY
     {"bluray", OPT_SUBSTRUCT(stream_bluray_opts, stream_bluray_conf)},
 #endif /* HAVE_LIBBLURAY */
@@ -989,6 +990,7 @@ static const struct MPOpts mp_default_opts = {
     .ab_loop = {MP_NOPTS_VALUE, MP_NOPTS_VALUE},
     .ab_loop_count = -1,
     .edition_id = -1,
+    .title_id = -1,
     .default_max_pts_correction = -1,
     .initial_audio_sync = true,
     .frame_dropping = 1,

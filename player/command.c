@@ -1114,6 +1114,16 @@ static int mp_property_current_edition(void *ctx, struct m_property *prop,
     return m_property_int_ro(action, arg, demuxer->edition);
 }
 
+static int mp_property_current_title(void *ctx, struct m_property *prop,
+                                      int action, void *arg)
+{
+    MPContext *mpctx = ctx;
+    struct demuxer *demuxer = mpctx->demuxer;
+    if (!demuxer || demuxer->num_titles <= 0)
+        return M_PROPERTY_UNAVAILABLE;
+    return m_property_int_ro(action, arg, demuxer->title);
+}
+
 static int mp_property_edition(void *ctx, struct m_property *prop,
                                int action, void *arg)
 {
@@ -1142,6 +1152,46 @@ static int mp_property_edition(void *ctx, struct m_property *prop,
         if (ed < 0)
             return M_PROPERTY_UNAVAILABLE;
         name = mp_tags_get_str(demuxer->editions[ed].metadata, "title");
+        if (name) {
+            *(char **) arg = talloc_strdup(NULL, name);
+        } else {
+            *(char **) arg = talloc_asprintf(NULL, "%d", ed + 1);
+        }
+        return M_PROPERTY_OK;
+    }
+    default:
+        return mp_property_generic_option(mpctx, prop, action, arg);
+    }
+}
+
+static int mp_property_title(void *ctx, struct m_property *prop,
+                               int action, void *arg)
+{
+    MPContext *mpctx = ctx;
+    struct demuxer *demuxer = mpctx->demuxer;
+    char *name = NULL;
+
+    if (!demuxer)
+        return mp_property_generic_option(mpctx, prop, action, arg);
+
+    int ed = demuxer->title;
+
+    if (demuxer->num_titles <= 1)
+        return M_PROPERTY_UNAVAILABLE;
+
+    switch (action) {
+    case M_PROPERTY_GET_CONSTRICTED_TYPE: {
+        *(struct m_option *)arg = (struct m_option){
+            .type = CONF_TYPE_INT,
+            .min = 0,
+            .max = demuxer->num_titles - 1,
+        };
+        return M_PROPERTY_OK;
+    }
+    case M_PROPERTY_PRINT: {
+        if (ed < 0)
+            return M_PROPERTY_UNAVAILABLE;
+        name = mp_tags_get_str(demuxer->titles[ed].metadata, "title");
         if (name) {
             *(char **) arg = talloc_strdup(NULL, name);
         } else {
@@ -1212,6 +1262,44 @@ static int property_list_editions(void *ctx, struct m_property *prop,
                                 get_edition_entry, mpctx);
 }
 
+static int property_list_titles(void *ctx, struct m_property *prop,
+                                  int action, void *arg)
+{
+    MPContext *mpctx = ctx;
+    struct demuxer *demuxer = mpctx->demuxer;
+    if (!demuxer)
+        return M_PROPERTY_UNAVAILABLE;
+
+    if (action == M_PROPERTY_PRINT) {
+        char *res = NULL;
+
+        struct demux_title *titles = demuxer->titles;
+        int num_titles = demuxer->num_titles;
+        int current = demuxer->title;
+
+        if (!num_titles)
+            res = talloc_asprintf_append(res, "No titles.");
+
+        for (int n = 0; n < num_titles; n++) {
+            struct demux_title *ed = &titles[n];
+
+            if (n == current)
+                res = append_selected_style(mpctx, res);
+            res = talloc_asprintf_append(res, "%d: ", n);
+            char *title = mp_tags_get_str(ed->metadata, "title");
+            if (!title)
+                title = "unnamed";
+            res = talloc_asprintf_append(res, "'%s'%s\n", title,
+                                         n == current ? get_style_reset(mpctx) : "");
+        }
+
+        *(char **)arg = res;
+        return M_PROPERTY_OK;
+    }
+    return m_property_read_list(action, arg, demuxer->num_editions,
+                                get_edition_entry, mpctx);
+}
+
 /// Number of chapters in file
 static int mp_property_chapters(void *ctx, struct m_property *prop,
                                 int action, void *arg)
@@ -1233,6 +1321,18 @@ static int mp_property_editions(void *ctx, struct m_property *prop,
     if (demuxer->num_editions <= 0)
         return M_PROPERTY_UNAVAILABLE;
     return m_property_int_ro(action, arg, demuxer->num_editions);
+}
+
+static int mp_property_titles(void *ctx, struct m_property *prop,
+                                int action, void *arg)
+{
+    MPContext *mpctx = ctx;
+    struct demuxer *demuxer = mpctx->demuxer;
+    if (!demuxer)
+        return M_PROPERTY_UNAVAILABLE;
+    if (demuxer->num_editions <= 0)
+        return M_PROPERTY_UNAVAILABLE;
+    return m_property_int_ro(action, arg, demuxer->num_titles);
 }
 
 static int get_tag_entry(int item, int action, void *arg, void *ctx)
@@ -4226,9 +4326,12 @@ static const struct m_property mp_properties_base[] = {
     {"remaining-ab-loops", mp_property_remaining_ab_loops},
     {"chapter", mp_property_chapter},
     {"edition", mp_property_edition},
+    {"title", mp_property_title},
     {"current-edition", mp_property_current_edition},
+    {"current-title", mp_property_current_title},
     {"chapters", mp_property_chapters},
     {"editions", mp_property_editions},
+    {"titles", mp_property_titles},
     {"metadata", mp_property_metadata},
     {"filtered-metadata", mp_property_filtered_metadata},
     {"chapter-metadata", mp_property_chapter_metadata},
@@ -4258,6 +4361,7 @@ static const struct m_property mp_properties_base[] = {
     {"track-list", property_list_tracks},
     {"current-tracks", property_current_tracks},
     {"edition-list", property_list_editions},
+    {"title-list", property_list_titles},
 
     {"playlist", mp_property_playlist},
     {"playlist-path", mp_property_playlist_path},
@@ -7724,6 +7828,17 @@ void mp_option_change_callback(void *ctx, struct m_config_option *co, int flags,
         struct demuxer *demuxer = mpctx->demuxer;
         if (mpctx->playback_initialized && demuxer && demuxer->num_editions > 0) {
             if (opts->edition_id != demuxer->edition) {
+                if (!mpctx->stop_play)
+                    mpctx->stop_play = PT_CURRENT_ENTRY;
+                mp_wakeup_core(mpctx);
+            }
+        }
+    }
+
+    if (opt_ptr == &opts->title_id) {
+        struct demuxer *demuxer = mpctx->demuxer;
+        if (mpctx->playback_initialized && demuxer && demuxer->num_titles > 0) {
+            if (opts->title_id != demuxer->title) {
                 if (!mpctx->stop_play)
                     mpctx->stop_play = PT_CURRENT_ENTRY;
                 mp_wakeup_core(mpctx);

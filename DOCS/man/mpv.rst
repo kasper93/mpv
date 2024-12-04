@@ -314,6 +314,9 @@ g-c
 g-e
     Select an edition.
 
+g-i
+    Select a DVD/BD title.
+
 g-l
     Select a subtitle line to seek to. This currently requires ``ffmpeg`` in
     ``PATH``, or in the same folder as mpv on Windows.

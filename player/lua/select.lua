@@ -246,6 +246,29 @@ mp.add_key_binding(nil, "select-edition", function ()
     })
 end)
 
+mp.add_key_binding(nil, "select-title", function ()
+    local titles = {}
+    local default_item = mp.get_property_native("current-title")
+
+    if default_item == nil then
+        show_error("No available titles.")
+        return
+    end
+
+    for i, title in ipairs(mp.get_property_native("title-list")) do
+        titles[i] = title.title
+    end
+
+    input.select({
+        prompt = "Select an title:",
+        items = titles,
+        default_item = default_item + 1,
+        submit = function (title)
+            mp.set_property("title", title - 1)
+        end,
+    })
+end)
+
 mp.add_key_binding(nil, "select-subtitle-line", function ()
     local sub = mp.get_property_native("current-tracks/sub")
 

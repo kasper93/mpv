@@ -165,6 +165,10 @@ struct demux_edition {
     struct mp_tags *metadata;
 };
 
+struct demux_title {
+    struct mp_tags *metadata;
+};
+
 struct matroska_segment_uid {
     unsigned char segment[16];
     uint64_t edition;
@@ -248,6 +252,10 @@ typedef struct demuxer {
     struct demux_edition *editions;
     int num_editions;
     int edition;
+
+    struct demux_title *titles;
+    int num_titles;
+    int title;
 
     struct demux_chapter *chapters;
     int num_chapters;

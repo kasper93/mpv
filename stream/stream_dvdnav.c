@@ -660,11 +660,11 @@ static int open_s(stream_t *stream)
     priv->track = TITLE_LONGEST;
 
     struct MPOpts *opts = mp_get_config_group(stream, stream->global, &mp_opt_root);
-    int edition_id = opts->edition_id;
+    int title_id = opts->title_id;
     talloc_free(opts);
 
-    if (edition_id >= 0) {
-        priv->track = edition_id;
+    if (title_id >= 0) {
+        priv->track = title_id;
     } else if (bstr_equals0(title, "longest") || bstr_equals0(title, "first")) {
         priv->track = TITLE_LONGEST;
     } else if (bstr_equals0(title, "menu")) {
