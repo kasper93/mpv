@@ -564,3 +564,45 @@ jobs:
         if: ${{ failure() && steps.tests.outcome == 'failure' }}
         run: |
           cat ./build/meson-logs/testlog.txt
+
+  build-muon:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:edge
+
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [clang, gcc]
+
+    env:
+      CC: ${{ matrix.cc }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add testing repo
+        run: |
+          echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+          apk update
+
+      - name: Install dependencies
+        run: |
+          apk add ${{ matrix.cc }} muon samurai libass-dev libplacebo-dev \
+                  ffmpeg-dev python3 luajit-dev mujs-dev zimg-dev gnu-libiconv-dev \
+                  libarchive-dev libbluray-dev rubberband-dev pipewire-dev libcaca-dev \
+                  libdrm-dev libdisplay-info-dev libsixel-dev wayland-dev wayland-protocols \
+                  libxkbcommon-dev libxscrnsaver-dev libxpresent-dev libxrandr-dev mesa-dev \
+                  ffnvcodec-headers libva-dev
+
+      - name: Configure
+        run: muon setup -Dlibmpv=true -Dtests=true build
+
+      - name: Build
+        run: samu -C build
+
+      - name: Tests
+        working-directory: build
+        run: muon test
+
+      - name: Analyze meson.build
+        run: muon analyze
