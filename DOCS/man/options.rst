@@ -11,7 +11,7 @@ Track Selection
     will be used. A track that matches more subtags will be preferred over one
     that matches fewer. See also ``--aid``.
 
-    This is a string list option. See `List Options`_ for details.
+    This is a string list opton. See `List Options`_ for details.
 
     .. admonition:: Examples
 
