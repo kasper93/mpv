@@ -1813,13 +1813,23 @@ if get_option('cplayer')
     mpv = executable('mpv', main_fn_source, objects: libmpv.extract_all_objects(recursive: true), dependencies: dependencies,
                      win_subsystem: get_option('win32-subsystem'), install: true)
 
-    if win32 and get_option('win32-subsystem') != 'console'
-        wrapper_sources= 'osdep/win32-console-wrapper.c'
-        executable('mpv', wrapper_sources, c_args: ['-municode', '-fno-asynchronous-unwind-tables'],
-                   link_args: ['-municode', '-nostartfiles', '-nodefaultlibs'],
-                   override_options: ['b_sanitize=none'],
-                   dependencies: cc.find_library('pathcch'),
-                   name_suffix: 'com', install: true)
+    if win32
+        wrapper_sources = 'osdep/win32-console-wrapper.c'
+        wrapper_c_args = ['-municode', '-fno-asynchronous-unwind-tables']
+        wrapper_kwargs = {
+            'dependencies': cc.find_library('pathcch'),
+            'link_args': ['-municode', '-nostartfiles', '-nodefaultlibs'],
+            'override_options': 'b_sanitize=none',
+            'name_suffix': 'com',
+            'install': true,
+        }
+        if get_option('win32-subsystem') != 'console'
+            executable('mpv', wrapper_sources, c_args: wrapper_c_args, kwargs: wrapper_kwargs)
+        endif
+        executable('mpv-register', wrapper_sources, c_args: wrapper_c_args + '-DMPV_REGISTER',
+                   kwargs: wrapper_kwargs)
+        executable('mpv-unregister', wrapper_sources, c_args: wrapper_c_args + '-DMPV_UNREGISTER',
+                   kwargs: wrapper_kwargs)
     endif
 
     if darwin

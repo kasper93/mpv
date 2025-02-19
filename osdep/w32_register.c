@@ -268,6 +268,8 @@ static void w32_register(struct MPContext *mpctx)
         wchar_t *rpath_w = mp_from_utf8(tmp, rpath);
         reg_add_str(log, root, KEY_MPV_APP_PATH(".exe"), L"Path", rpath_w);
         reg_add_str(log, root, KEY_MPV_APP_PATH(".com"), L"Path", rpath_w);
+        reg_add_str(log, root, KEY_MPV_APP_PATH("-register.com"), L"Path", rpath_w);
+        reg_add_str(log, root, KEY_MPV_APP_PATH("-unregister.com"), L"Path", rpath_w);
     }
 
     // Name of the "Open With" entry in the context menu
@@ -427,6 +429,8 @@ static void w32_unregister(struct MPContext *mpctx)
 
     reg_del(log, root, KEY_MPV_APP_PATH(".exe"), NULL);
     reg_del(log, root, KEY_MPV_APP_PATH(".com"), NULL);
+    reg_del(log, root, KEY_MPV_APP_PATH("-register.com"), NULL);
+    reg_del(log, root, KEY_MPV_APP_PATH("-unregister.com"), NULL);
     reg_del(log, root, KEY_MPV_APP, NULL);
     reg_del(log, root, KEY_MPV_CAPABILITIES_APP, NULL);
     reg_del(log, root, L"Software\\RegisteredApplications", MPV_NAME);
