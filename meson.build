@@ -1,5 +1,5 @@
 project('mpv',
-        'c',
+        ['c', 'rust'],
         license: ['GPL2+', 'LGPL2.1+'],
         version: files('./MPV_VERSION'),
         meson_version: '>=1.3.0',
@@ -11,6 +11,8 @@ project('mpv',
             'cpp_std=c++20',
             'cpp_eh=default',
             'warning_level=2',
+            'rust_std=2021',
+            'build.rust_std=2021',
         ]
 )
 
@@ -1761,6 +1763,17 @@ major = client_h_define.split('|')[0].split('<<')[0].strip('() ')
 minor = client_h_define.split('|')[1].strip('() ')
 client_api_version = major + '.' + minor + '.0'
 
+isolang_dep = dependency('isolang', fallback : ['isolang', 'isolang_dep'])
+libmpv_rs = static_library('libmpv_rs',
+    files('misc/language.rs'),
+    rust_abi: 'c',
+    dependencies: isolang_dep,
+)
+libmpv_rs_dep = declare_dependency(link_with: libmpv_rs)
+if get_option('default_library') == 'shared'
+    dependencies += declare_dependency(link_with: libmpv_rs)
+endif
+
 libmpv = library('mpv', sources, dependencies: dependencies, gnu_symbol_visibility: 'hidden',
                  link_args: cc.get_supported_link_arguments(['-Wl,-Bsymbolic']),
                  version: client_api_version, install: get_option('libmpv'),
@@ -1777,7 +1790,7 @@ if get_option('libmpv')
     install_headers(headers, subdir: 'mpv')
 
     # Allow projects to build with libmpv by cloning into ./subprojects/mpv
-    libmpv_dep = declare_dependency(link_with: libmpv)
+    libmpv_dep = declare_dependency(link_with: [libmpv, libmpv_rs])
     meson.override_dependency('mpv', libmpv_dep)
 endif
 
@@ -1809,7 +1822,7 @@ if get_option('cplayer')
                  rename: 'mpv.svg')
     install_data('etc/mpv-symbolic.svg', install_dir: join_paths(hicolor_dir, 'symbolic', 'apps'))
 
-    mpv = executable('mpv', main_fn_source, objects: libmpv.extract_all_objects(recursive: true), dependencies: dependencies,
+    mpv = executable('mpv', main_fn_source, objects: libmpv.extract_all_objects(recursive: true), dependencies: dependencies + libmpv_rs_dep,
                      win_subsystem: get_option('win32-subsystem'), install: true)
 
     if win32 and get_option('win32-subsystem') != 'console'

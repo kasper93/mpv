@@ -102,7 +102,7 @@ test('timer', timer)
 format = executable('format', files('format.c'), include_directories: incdir, link_with: test_utils)
 test('format', format)
 
-language = executable('language', files('language.c'), include_directories: incdir, link_with: test_utils)
+language = executable('language', files('language.c'), include_directories: incdir, link_with: [test_utils, libmpv_rs])
 test('language', language)
 
 codepoint_width = executable('codepoint-width', files('codepoint_width.c'),
@@ -119,15 +119,15 @@ if get_option('libmpv')
     file = join_paths(source_root, 'etc', 'mpv-icon-8bit-16x16.png')
 
     exe = executable('libmpv-test-file-loading', 'libmpv_test_file_loading.c',
-                     include_directories: incdir, link_with: libmpv)
+                     include_directories: incdir, dependencies: libmpv_dep)
     test('libmpv-test-file-loading', exe, args: file, suite: 'libmpv')
 
     exe = executable('libmpv-test-lavfi-complex', 'libmpv_test_lavfi_complex.c',
-                     include_directories: incdir, link_with: libmpv)
+                     include_directories: incdir, dependencies: libmpv_dep)
     test('libmpv-test-lavfi-complex', exe, args: file, suite: 'libmpv')
 
     exe = executable('libmpv-test-options', 'libmpv_test_options.c',
-                     include_directories: incdir, link_with: libmpv)
+                     include_directories: incdir, dependencies: libmpv_dep)
     test('libmpv-test-options', exe, suite: 'libmpv')
 
     # Old versions of ffmpeg are bugged when setting forced tracks and older
@@ -140,7 +140,7 @@ if get_option('libmpv')
     endif
 
     exe = executable('libmpv-encode', 'libmpv_encode.c',
-                     include_directories: incdir, link_with: libmpv)
+                     include_directories: incdir, dependencies: libmpv_dep)
     test('libmpv-encode', exe, suite: 'libmpv')
 
     mpvlib = libmpv

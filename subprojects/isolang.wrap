@@ -1,0 +1,6 @@
+[wrap-file]
+directory = isolang-2.4.0
+source_url =  https://crates.io/api/v1/crates/isolang/2.4.0/download
+source_filename = isolang-2.4.0.tar.gz
+source_hash = fe50d48c77760c55188549098b9a7f6e37ae980c586a24693d6b01c3b2010c3c
+patch_directory = isolang
