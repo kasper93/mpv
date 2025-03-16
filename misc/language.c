@@ -297,81 +297,69 @@ done:
     return best_score;
 }
 
+static bool validate_subtag(bstr lang, bool primary)
+{
+    if (lang.len < (primary ? 2 : 1) || lang.len > (primary ? 3 : 8))
+        return false;
+
+    for (int i = 0; i < lang.len; i++) {
+        if (!mp_isalpha(lang.start[i]))
+            return false;
+    }
+
+    return true;
+}
+
+// TODO: This is wrong. It needs to understand BCP 47 fully or at least try...
+static bool validate_tag(bstr tag)
+{
+    for (int i = 0; tag.len; ++i) {
+        bstr subtag;
+        bstr_split_tok(tag, "-", &subtag, &tag);
+        if (!validate_subtag(subtag, i == 0))
+            return false;
+    }
+
+    return true;
+}
+
 bstr mp_guess_lang_from_filename(bstr name, int *lang_start, bool *hearing_impaired)
 {
-    name = bstr_strip(bstr_strip_ext(name));
+    struct bstr tag;
+    struct bstr rest = name;
+    int pos = -1;
+    int i = 0;
+    while (rest.len) {
+        tag = bstr_rsplit(rest, ".([", &rest);
+        if (!tag.len)
+            break;
+        pos = MPMAX(0, tag.start - name.start - 1);
 
-    if (lang_start)
-        *lang_start = -1;
+        if (i == 0) {
+            // Extension is required
+            if (name.start[pos] != '.')
+                break;
+            ++i;
+            continue;
+        }
+
+        if (i == 1 && (!bstrcasecmp0(tag, "hi") || !bstrcasecmp0(tag, "sdh") || !bstrcasecmp0(tag, "cc"))) {
+            ++i;
+            continue;
+        }
+
+        break;
+    }
+
+    bool valid = validate_tag(tag);
+    if (!valid)
+        tag = (bstr){0};
 
     if (hearing_impaired)
-        *hearing_impaired = false;
-
-    if (name.len < 2)
-        return (bstr){0};
-
-    int lang_length = 0;
-    int i = name.len - 1;
-    int suffixes_length = 0;
-
-    char delimiter = '.';
-    if (name.start[i] == ')') {
-        delimiter = '(';
-        i--;
-    }
-    if (name.start[i] == ']') {
-        delimiter = '[';
-        i--;
-    }
-
-    bool *hi = hearing_impaired ? hearing_impaired : &(bool){0};
-    bool checked_hi = false;
-
-    while (true) {
-        while (i >= 0 && mp_isalpha(name.start[i])) {
-            lang_length++;
-            i--;
-        }
-
-        if (i >= 0 && lang_length >= 2 && !checked_hi && name.start[i] == delimiter) {
-            checked_hi = true;
-            static const char *const suffixes[] = { "sdh", "hi", "cc" };
-            bstr tag = { name.start + i + 1, lang_length };
-            for (int n = 0; n < MP_ARRAY_SIZE(suffixes); n++) {
-                if (!bstrcasecmp0(tag, suffixes[n])) {
-                    *hi = true;
-                    break;
-                }
-            }
-            if (*hi) {
-                lang_length = 0;
-                i -= (delimiter != '.') ? 2 : 1;
-                continue;
-            }
-        }
-
-        // According to
-        // https://en.wikipedia.org/wiki/IETF_language_tag#Syntax_of_language_tags
-        // subtags after the first are composed of 1 to 8 letters.
-        if (lang_length < suffixes_length + 1 || lang_length > suffixes_length + 8)
-            return (bstr){0};
-
-        if (i >= 0 && name.start[i] == '-') {
-            lang_length++;
-            i--;
-            suffixes_length = lang_length;
-        } else {
-            break;
-        }
-    }
-
-    // The primary subtag can have 2 or 3 letters.
-    if (lang_length < suffixes_length + 2 || lang_length > suffixes_length + 3 ||
-        i <= 0 || name.start[i] != delimiter)
-        return (bstr){0};
+        *hearing_impaired = valid && i == 2;
 
     if (lang_start)
-        *lang_start = i;
+        *lang_start = valid ? pos : -1;
 
-    return (bstr){name.start + i + 1, lang_length};
+    return tag;
 }

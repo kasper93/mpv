@@ -93,6 +93,15 @@ int bstrcspn(struct bstr str, const char *reject)
     return i;
 }
 
+int bstrrcspn(struct bstr str, const char *reject)
+{
+    int i;
+    for (i = str.len - 1; i >= 0; i--)
+        if (strchr(reject, str.start[i]))
+            break;
+    return i;
+}
+
 int bstrspn(struct bstr str, const char *accept)
 {
     int i;
@@ -139,6 +148,20 @@ struct bstr bstr_split(struct bstr str, const char *sep, struct bstr *rest)
         *rest = bstr_cut(str, end);
     }
     return bstr_splice(str, 0, end);
+}
+
+struct bstr bstr_rsplit(struct bstr str, const char *sep, struct bstr *rest)
+{
+    int end;
+    for (end = str.len - 1; end >= 0; end--)
+        if (!strchr(sep, str.start[end]))
+            break;
+    str = bstr_splice(str, 0, end + 1);
+    int split = bstrrcspn(str, sep);
+    if (rest) {
+        *rest = bstr_splice(str, 0, split + 1);
+    }
+    return bstr_cut(str, split + 1);
 }
 
 // Unlike with bstr_split(), tok is a string, and not a set of char.

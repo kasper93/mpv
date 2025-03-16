@@ -69,11 +69,13 @@ int bstrchr(struct bstr str, int c);
 int bstrrchr(struct bstr str, int c);
 int bstrspn(struct bstr str, const char *accept);
 int bstrcspn(struct bstr str, const char *reject);
+int bstrrcspn(struct bstr str, const char *reject);
 
 int bstr_find(struct bstr haystack, struct bstr needle);
 struct bstr bstr_lstrip(struct bstr str);
 struct bstr bstr_strip(struct bstr str);
 struct bstr bstr_split(struct bstr str, const char *sep, struct bstr *rest);
+struct bstr bstr_rsplit(struct bstr str, const char *sep, struct bstr *rest);
 bool bstr_split_tok(bstr str, const char *tok, bstr *out_left, bstr *out_right);
 struct bstr bstr_splice(struct bstr str, int start, int end);
 long long bstrtoll(struct bstr str, struct bstr *rest, int base);
