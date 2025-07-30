@@ -17,6 +17,13 @@ jobs:
     env:
       WORKSPACE: ${{ github.workspace }}
     steps:
+      - name: List some executables
+        run: |
+          file (get-command rustc).source
+          file (get-command cmake).source
+          file (get-command python).source
+          file "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe"
+
       - name: Show disk layout
         run: |
           Get-Disk
