@@ -803,6 +803,8 @@ static void adjust_audio_drift_compensation(struct MPContext *mpctx, double vsyn
 
         audio_factor = MPCLAMP(audio_factor, 1 - max_correct, 1 + max_correct);
         mpctx->speed_factor_a = audio_factor * mpctx->speed_factor_v;
+    } else {
+        mpctx->speed_factor_a = mpctx->speed_factor_v;
     }
 }
 
