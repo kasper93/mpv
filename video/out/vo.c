@@ -990,6 +990,12 @@ static bool render_frame(struct vo *vo)
 
     if (in->dropped_frame) {
         in->drop_count += 1;
+        MP_VERBOSE(vo, "vo: DROPPING frame_id=%"PRIu64" pts=%"PRId64
+                   " duration=%"PRId64" end_time=%"PRId64" now=%"PRId64
+                   " late_by_ms=%"PRId64" drop_count=%"PRId64"\n",
+                   frame->frame_id, pts, duration,
+                   end_time, now, (now - end_time) / 1000000,
+                   in->drop_count);
         wakeup_core(vo);
     } else {
         in->rendering = true;

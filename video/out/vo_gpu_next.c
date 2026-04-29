@@ -1065,12 +1065,44 @@ static bool draw_frame(struct vo *vo, struct vo_frame *frame)
     bool can_interpolate = opts->interpolation && frame->display_synced &&
                            !frame->still && frame->num_frames > 1;
     double pts_offset = can_interpolate ? frame->ideal_frame_vsync : 0;
+
+    MP_VERBOSE(vo, "draw_frame: frame_id=%"PRIu64" cur_pts=%.4f num_frames=%d "
+                   "num_vsyncs=%d display_synced=%d repeat=%d redraw=%d still=%d "
+                   "can_drop=%d ideal_vsync=%.4f vsync_interval=%.6f duration=%.4f\n",
+               frame->frame_id,
+               frame->current ? frame->current->pts : -1.0,
+               frame->num_frames,
+               frame->num_vsyncs,
+               frame->display_synced,
+               frame->repeat, frame->redraw, frame->still, frame->can_drop,
+               frame->ideal_frame_vsync,
+               frame->vsync_interval,
+               frame->approx_duration);
+    if (frame->num_frames > 0) {
+        char ptsbuf[256];
+        int pos = 0;
+        for (int i = 0; i < frame->num_frames && pos < (int)sizeof(ptsbuf) - 16; i++) {
+            pos += snprintf(ptsbuf + pos, sizeof(ptsbuf) - pos, "%s%.4f",
+                            i ? "," : "",
+                            frame->frames[i] ? frame->frames[i]->pts : -1.0);
+        }
+        MP_VERBOSE(vo, "draw_frame: input frame PTS list = [%s]\n", ptsbuf);
+    }
     params.info_callback = info_callback;
     params.info_priv = vo;
     params.skip_caching_single_frame = !cache_frame;
     params.preserve_mixing_cache = p->next_opts->inter_preserve && !frame->still;
     if (frame->still)
         params.frame_mixer = NULL;
+
+    // EXPERIMENT: full GPU sync at the start of every draw_frame. This blocks
+    // the CPU until ALL previously submitted GPU work completes, effectively
+    // serializing frames at the GPU level (similar to swapchain-depth=1, but
+    // imposed from the application side). If this fixes the visual bug, the
+    // root cause is a synchronization issue somewhere in pl_renderer's
+    // intermediate work that only manifests when previous frames' GPU work
+    // overlaps with the current frame's CPU-side cmd recording.
+    pl_gpu_finish(gpu);
 
     if (frame->current && frame->current->params.vflip) {
         pl_matrix2x2 m = { .m = {{1, 0}, {0, -1}}, };
@@ -1442,6 +1474,24 @@ static bool draw_frame(struct vo *vo, struct vo_frame *frame)
             update_hook_opts_dynamic(p, p->hooks[i], frame->current);
     }
 
+    // Diagnostic: dump the frame mix that is about to be rendered
+    if (mix.num_frames > 0) {
+        char mixbuf[512];
+        int mixpos = 0;
+        for (int i = 0; i < mix.num_frames && mixpos < (int)sizeof(mixbuf) - 16; i++) {
+            mixpos += snprintf(mixbuf + mixpos, sizeof(mixbuf) - mixpos,
+                               "%s%.4f", i ? "," : "",
+                               (double) mix.timestamps[i]);
+        }
+        MP_VERBOSE(vo, "draw_frame: mix.num_frames=%d rel_ts=[%s] vsync_dur=%.4f "
+                       "interpolated=%d pts_offset=%.4f\n",
+                   mix.num_frames, mixbuf, (double) mix.vsync_duration,
+                   pts_offset != 0 && mix.num_frames > 1,
+                   pts_offset);
+    } else {
+        MP_VERBOSE(vo, "draw_frame: mix is EMPTY (clearing FBO)\n");
+    }
+
     // Render frame
     stats_time_start(p->stats, "render");
     bool render_ok = pl_render_image_mix(p->rr, &mix, &target, &params);
@@ -1491,9 +1541,12 @@ static void flip_page(struct vo *vo)
     struct ra_swapchain *sw = p->ra_ctx->swapchain;
 
     if (p->frame_pending) {
+        MP_VERBOSE(vo, "flip_page: calling pl_swapchain_submit_frame\n");
         if (!pl_swapchain_submit_frame(p->sw))
             MP_ERR(vo, "Failed presenting frame!\n");
         p->frame_pending = false;
+    } else {
+        MP_VERBOSE(vo, "flip_page: no frame_pending, calling swap_buffers only\n");
     }
 
     sw->fns->swap_buffers(sw);
