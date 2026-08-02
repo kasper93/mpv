@@ -266,7 +266,7 @@ _vulkan_loader () {
 _vulkan_loader_mark=lib/libvulkan-1.dll.a
 
 _libplacebo () {
-    [ -d libplacebo ] || $gitclone https://code.videolan.org/videolan/libplacebo.git
+    [ -d libplacebo ] || $gitclone https://code.videolan.org/kasper93/libplacebo.git -b fix-tone-mapping
     builddir libplacebo
     meson setup .. --cross-file "$prefix_dir/crossfile" \
         -Ddemos=false -D{opengl,d3d11,lcms}=enabled

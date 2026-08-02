@@ -246,8 +246,8 @@ $projects = @(
     },
     @{
         Path = "$subprojects/libplacebo.wrap"
-        URL = "https://code.videolan.org/videolan/libplacebo.git"
-        Revision = "master"
+        URL = "https://code.videolan.org/kasper93/libplacebo.git"
+        Revision = "fix-tone-mapping"
     },
     @{
         Path = "$subprojects/dav1d.wrap"
