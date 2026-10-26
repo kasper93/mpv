@@ -8489,9 +8489,18 @@ void mp_option_run_callback(struct MPContext *mpctx, struct mp_option_callback *
 
     if (flags & UPDATE_VO && mpctx->video_out) {
         struct track *track = mpctx->current_track[0][STREAM_VIDEO];
+        struct mp_pin *filter_src = mpctx->vo_chain ? mpctx->vo_chain->filter_src : NULL;
         uninit_video_out(mpctx);
         handle_force_window(mpctx, true);
-        reinit_video_chain(mpctx);
+
+        if (filter_src || (track && track->stream))
+            reinit_video_chain_src(mpctx, filter_src ? NULL : track);
+
+        if (filter_src && mpctx->vo_chain) {
+            mpctx->vo_chain->filter_src = filter_src;
+            mp_pin_connect(mpctx->vo_chain->filter->f->pins[0], filter_src);
+        }
+
         if (track)
             queue_seek(mpctx, MPSEEK_RELATIVE, 0.0, MPSEEK_EXACT, 0);
 
