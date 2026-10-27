@@ -14,8 +14,14 @@ if [[ "${MACOS_TARGET_OS}" == "test" ]]; then
     c_args="-Werror"
 fi
 
+mkdir -p subprojects
+git clone https://code.videolan.org/videolan/libplacebo.git \
+    --recurse-submodules --shallow-submodules \
+    --depth=1 subprojects/libplacebo
+
 PKG_CONFIG_PATH="$(brew --prefix libarchive)/lib/pkgconfig/" CC="${CC}" CXX="${CXX}" \
 meson setup build $common_args \
+  --force-fallback-for=libplacebo \
   -Dobjc_args="${objc_args}" \
   -Dc_args="${c_args}" \
   -D{caca,cdda,dvda,dvdnav,gl,iconv,lcms2,libarchive,libbluray,lua,jpeg}=enabled \
