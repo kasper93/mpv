@@ -1,6 +1,7 @@
-# Runs pbo_upload_test.c and pl_osd_upload_test.c on the hosted macOS runners.
-# The runners are virtual machines, their OpenGL may differ from the one of a
-# real Mac, so a pass there proves little.
+# Builds and runs the upload replay tests on the hosted macOS runners. Those
+# only have Apple's software renderer, which does not show the defect, so
+# this only tells that the tests build and run on macOS. macos-15 and
+# macos-26 are left out, their jobs got no runner on the fork.
 name: apple-gl-upload-test
 on:
   workflow_dispatch:
@@ -11,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [xcode-27, macos-15, macos-26]
+        os: [xcode-27, macos-15-intel]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -19,26 +20,13 @@ jobs:
         run: |
           sw_vers
           uname -m
-          system_profiler SPDisplaysDataType || true
       - name: Build
-        run: clang -O1 -Wall pbo_upload_test.c -framework OpenGL -o pbo_upload_test
-      - name: Run
-        run: ./pbo_upload_test || true
-      - name: Run with 20 ms between frames
-        run: ./pbo_upload_test --delay=20 --frames=12 || true
-      - name: Selftest, every variant has to fail
-        run: ./pbo_upload_test --selftest --frames=8 || true
-      - name: libplacebo
-        continue-on-error: true
         run: |
-          brew install libplacebo pkgconf
-          pkg-config --modversion libplacebo
-      - name: Build the libplacebo test
-        continue-on-error: true
-        run: clang -O1 -Wall pl_osd_upload_test.c $(pkg-config --cflags --libs libplacebo) -framework OpenGL -o pl_osd_upload_test
-      - name: Run the libplacebo test
-        continue-on-error: true
-        run: ./pl_osd_upload_test || true
-      - name: Selftest of the libplacebo test
-        continue-on-error: true
-        run: ./pl_osd_upload_test --selftest --frames=8 || true
+          clang -O1 -Wall pbo_upload_test.c -framework OpenGL -o pbo_upload_test
+          clang -O1 -Wall pbo_upload_test2.c -framework OpenGL -o pbo_upload_test2
+      - name: Second round
+        run: ./pbo_upload_test2 || true
+      - name: Second round, selftest, every variant has to fail
+        run: ./pbo_upload_test2 --selftest --frames=8 || true
+      - name: First round
+        run: ./pbo_upload_test || true
