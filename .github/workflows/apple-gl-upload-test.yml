@@ -1,0 +1,30 @@
+# Runs pbo_upload_test.c on the hosted macOS runners. The runners are virtual
+# machines, their OpenGL may differ from the one of a real Mac, so a pass
+# there proves little.
+name: apple-gl-upload-test
+on:
+  workflow_dispatch:
+  push:
+    branches: [apple-gl-upload-test]
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-26, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: System
+        run: |
+          sw_vers
+          uname -m
+          system_profiler SPDisplaysDataType || true
+      - name: Build
+        run: clang -O1 -Wall pbo_upload_test.c -framework OpenGL -o pbo_upload_test
+      - name: Run
+        run: ./pbo_upload_test || true
+      - name: Run with 20 ms between frames
+        run: ./pbo_upload_test --delay=20 --frames=12 || true
+      - name: Selftest, every variant has to fail
+        run: ./pbo_upload_test --selftest --frames=8 || true
